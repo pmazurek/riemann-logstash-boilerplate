@@ -21,7 +21,7 @@ python make-logs.py
 ```
 
 This stack exposes two UI's:
-- Kibana - port 5043
+- Kibana - port 5601
 - Influxdb - port 8083
 
-Works with Docker version 1.8.1.
+Works with Docker version 1.9.1.

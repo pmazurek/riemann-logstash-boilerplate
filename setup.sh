@@ -10,17 +10,13 @@ docker run --name=influxdb-local -p 8083:8083 -p 8086:8086 \
     -e INFLUXDB_INIT_PWD=password \
     -d tutum/influxdb
 
-docker run --name=logstash-local \
-    -p "5043:5043" \
-    -v "$(pwd)/conf/logstash:/config-dir" \
-    -d logstash-with-riemann -f /config-dir/logstash.conf --verbose
-
 docker run --name=elasticsearch-local \
     -p "9200:9200" \
     -p "9300:9300" \
-    -d elasticsearch 
+    -d elasticsearch:2.1
 
 docker run --name=riemann-local \
+    --link influxdb-local:influxdb-local \
     -p "5555:5555" \
     -p "5556:5556" \
     -v "$(pwd)/conf/riemann:/opt/riemann/etc" \
@@ -30,7 +26,15 @@ docker run --name=riemann-local \
     -e RIEMANN_INFLUXDB_PASSWORD=password \
     -d pmazurek/riemann
 
+docker run --name=logstash-local \
+    --link riemann-local:riemann-local \
+    --link elasticsearch-local:elasticsearch-local \
+    -p "5043:5043" \
+    -v "$(pwd)/conf/logstash:/config-dir" \
+    -d logstash-with-riemann -f /config-dir/logstash.conf --verbose
+
 docker run --name=collectd-local \
+    --link riemann-local:riemann-local \
     -e CONFIG_TYPE=riemann \
     -e EP_HOST=riemann-local \
     -e EP_PORT=5555 \
@@ -39,4 +43,4 @@ docker run --name=collectd-local \
 docker run --name kibana-local \
     --link elasticsearch-local:elasticsearch \
     -p 5601:5601 \
-    -d kibana
+    -d kibana:4.3.1
